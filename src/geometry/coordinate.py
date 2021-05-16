@@ -7,6 +7,7 @@ import operator
 from collections import namedtuple
 from functools import reduce
 
+
 # do not instantiate directly. use with an iterable and it slaps some vector stuff on.
 class Vector:
     """superclass for creating vectors with an arbitrary number of coordinates"""
