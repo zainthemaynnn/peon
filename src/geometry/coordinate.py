@@ -12,6 +12,9 @@ from functools import reduce
 class Vector:
     """superclass for creating vectors with an arbitrary number of coordinates"""
 
+    # pylint: disable=E1133
+    # pylint thinks that the vector (self) cannot be iterated
+
     def __init__(self, *components):
         self.magnitude = math.hypot(*components)
 
@@ -27,7 +30,6 @@ class Vector:
             )
 
         if scalars_allowed and isinstance(operand, (int, float)):
-            # pylint: disable=E1133
             return True, self.__class__(*[operation(c, operand) for c in self])
 
         return False, None
@@ -63,6 +65,14 @@ class Vector:
             raise ArithmeticError(f"Cannot get dot product with {type(operand)}.")
         return reduce(lambda a, b: a + b, product)
 
+    def round(self, precision=0, int_cast=False):
+        """returns rounded vector"""
+        return (
+            self.__class__(*[int(round(c, precision)) for c in self])
+            if int_cast
+            else self.__class__(*[round(c, precision) for c in self])
+        )
+
 
 # I am using namedtuples as iterables
 class Vector2(Vector, namedtuple("CoordXY", ("x", "y"))):
@@ -80,9 +90,10 @@ class Vector3(Vector, namedtuple("CoordXYZ", ("x", "y", "z"))):
             raise ArithmeticError(f"Cannot get cross product with {type(operand)}.")
 
         components = []
+        c_0 = 1
         for i in range(3):
-            c_0 = (i + 1) % 3
             c_1 = (i + 2) % 3
             components.append(self[c_0] * operand[c_1] - self[c_1] * operand[c_0])
+            c_0 = c_1
 
         return self.__class__(*components)
