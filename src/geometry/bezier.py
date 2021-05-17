@@ -60,7 +60,8 @@ class Bezier:
 
     def get_coord(self, t):
         """returns a single coordinate (unspaced) along the curve from delta 0-1"""
-        #  a bezier of order N is just (t + (t - 1)) ^ N, use binomial expansion
+        # a bezier of order N is just (t + (t - 1)) ^ N
+        # with each product multiplied by the respective point
         s = t - 1
         product = self.root_points[0].__class__()  # initialize empty vector
         for i, coord in enumerate(self.root_points):
