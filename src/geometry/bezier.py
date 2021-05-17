@@ -17,7 +17,10 @@ class Bezier:
 
     def map(self, n_points):
         """returns bezier coordinates"""
-        return [self.get_coord(t / n_points) for t in range(1, n_points + 1)]
+        coords = [self.root_points[0]]
+        for step in range(1, n_points):
+            coords.append(self.get_coord(step / (n_points - 1)))
+        return coords
 
     def map_eq(self, n_points):
         """returns bezier coordinates, spaced equally"""
