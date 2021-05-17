@@ -1,6 +1,8 @@
 """
 along with many mathematical features of a vector
 you can easily unpack them into components with *Vector
+ok, so I learned turtle has its own vector2 and this is useless
+it still has more stuff though so why not I guess
 """
 
 import math
@@ -42,8 +44,22 @@ class Vector:
     def __mul__(self, operand):
         return self._apply(operand, operator.mul, "Cannot multiply {} by {}.", True)
 
+    def __rmul__(self, operand):
+        return self.__mul__(operand)
+
     def __truediv__(self, operand):
         return self._apply(operand, operator.truediv, "Cannot divide {} by {}.", True)
+
+    def __floordiv__(self, operand):
+        return self._apply(operand, operator.floordiv, "Cannot divide {} by {}.", True)
+
+    def __abs__(self):
+        return self.magnitude
+
+    def __round__(self, precision=0):
+        return self._apply(
+            precision, round if precision != 0 else lambda a, b: int(round(a, b))
+        )
 
     def __getattr__(self, key):
         if key == "magnitude":  # this is separate because calculating it is expensive
@@ -60,16 +76,17 @@ class Vector:
             ),
         )
 
-    def round(self, precision=0):
-        """returns rounded vector. casts to int if precision is 0."""
-        return self._apply(
-            precision, round if precision != 0 else lambda a, b: int(round(a, b))
-        )
-
 
 # I am using namedtuples as iterables
 class Vector2(Vector, namedtuple("CoordXY", ("x", "y"), defaults=[0, 0])):
     """a vector with x and y coordinates"""
+
+    def rotate(self, n_deg):
+        """returns vector rotated N degrees counterclockwise"""
+        # https://matthew-brett.github.io/teaching/rotation_2d.html
+        # pylint: disable=C0103
+        rx, ry = self.x * n_deg, self.y * n_deg
+        return self.__class__(math.cos(rx) - math.sin(ry), math.sin(rx) + math.cos(ry))
 
 
 # I made vector3 for fun because it isn't much different

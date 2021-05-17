@@ -38,7 +38,7 @@ class Bezier:
 
         for step in range(1, n_points):
             coord = self.get_coord(step / (n_points - 1))
-            distance = (coord - prev_coord).magnitude
+            distance = abs(coord - prev_coord)
             arc_total += distance
             unshifted.append((coord, distance))
             arc_lengths.append(arc_total)
@@ -53,7 +53,7 @@ class Bezier:
             prev_coord = unshifted[i - 1][0]
 
             coords.append(
-                lerp(coord, prev_coord, (target - nearest) / distance).round()
+                round(lerp(coord, prev_coord, (target - nearest) / distance))
             )
 
         return coords
@@ -65,4 +65,4 @@ class Bezier:
         product = self.root_points[0].__class__()  # initialize empty vector
         for i, coord in enumerate(self.root_points):
             product += coord * (comb(self.order, i) * t ** i * s ** (self.order - i))
-        return product.round()
+        return round(product)
