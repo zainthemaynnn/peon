@@ -1,5 +1,6 @@
 """
-I think the name gives it away
+along with many mathematical features of a vector
+you can easily unpack them into components with *Vector
 """
 
 import math
@@ -8,92 +9,84 @@ from collections import namedtuple
 from functools import reduce
 
 
-# do not instantiate directly. use with an iterable and it slaps some vector stuff on.
+# do not instantiate directly. use with an iterable class and it slaps some vector stuff on.
 class Vector:
     """superclass for creating vectors with an arbitrary number of coordinates"""
 
     # pylint: disable=E1133
-    # pylint thinks that the vector (self) cannot be iterated
 
-    def __init__(self, *components):
-        self.magnitude = math.hypot(*components)
-
-    def _apply(self, operand, operation, scalars_allowed=True):
+    def _apply(self, operand, operation, errormsg=None, scalars_allowed=True):
         """
         returns a vector with each component changed by a vector or scalar.
-        also does basic type filtering.
+        handles basic errors.
         """
 
         if isinstance(operand, self.__class__):
-            return True, self.__class__(
-                *[operation(c_0, c_1) for c_0, c_1 in zip(self, operand)]
-            )
+            return self.__class__(*[operation(c0, c1) for c0, c1 in zip(self, operand)])
 
         if scalars_allowed and isinstance(operand, (int, float)):
-            return True, self.__class__(*[operation(c, operand) for c in self])
+            return self.__class__(*[operation(c, operand) for c in self])
 
-        return False, None
+        raise TypeError(
+            None if not errormsg else errormsg.format(type(self), type(operand))
+        )
 
     def __add__(self, operand):
-        success, product = self._apply(operand, operator.add, False)
-        if not success:
-            raise ArithmeticError(f"Cannot add {type(operand)} to {type(self)}.")
-        return product
+        return self._apply(operand, operator.add, "Cannot add to {} with {}.", False)
 
+    # fmt: off
     def __sub__(self, operand):
-        success, product = self._apply(operand, operator.sub, False)
-        if not success:
-            raise ArithmeticError(f"Cannot subtract {type(operand)} from {type(self)}.")
-        return product
+        return self._apply(operand, operator.sub, "Cannot subtract from {} with {}.", False)
+    # fmt: on
 
     def __mul__(self, operand):
-        success, product = self._apply(operand, operator.mul, True)
-        if not success:
-            raise ArithmeticError(f"Cannot multiply {type(self)} by {type(operand)}.")
-        return product
+        return self._apply(operand, operator.mul, "Cannot multiply {} by {}.", True)
 
     def __truediv__(self, operand):
-        success, product = self._apply(operand, operator.truediv, True)
-        if not success:
-            raise ArithmeticError(f"Cannot divide {type(self)} by {type(operand)}.")
-        return product
+        return self._apply(operand, operator.truediv, "Cannot divide {} by {}.", True)
+
+    def __getattr__(self, key):
+        if key == "magnitude":  # this is separate because calculating it is expensive
+            setattr(self, "magnitude", math.hypot(*self))
+            return self.magnitude
+        raise AttributeError
 
     def dot(self, operand):
         """calculates dot product of two vectors"""
-        success, product = self._apply(operand, operator.mul, False)
-        if not success:
-            raise ArithmeticError(f"Cannot get dot product with {type(operand)}.")
-        return reduce(lambda a, b: a + b, product)
+        return reduce(
+            lambda a, b: a + b,
+            self._apply(
+                operand, operator.mul, "Cannot get dot product of {} with {}.", False
+            ),
+        )
 
-    def round(self, precision=0, int_cast=False):
-        """returns rounded vector"""
-        return (
-            self.__class__(*[int(round(c, precision)) for c in self])
-            if int_cast
-            else self.__class__(*[round(c, precision) for c in self])
+    def round(self, precision=0):
+        """returns rounded vector. casts to int if precision is 0."""
+        return self._apply(
+            precision, round if precision != 0 else lambda a, b: int(round(a, b))
         )
 
 
 # I am using namedtuples as iterables
-class Vector2(Vector, namedtuple("CoordXY", ("x", "y"))):
+class Vector2(Vector, namedtuple("CoordXY", ("x", "y"), defaults=[0, 0])):
     """a vector with x and y coordinates"""
 
 
 # I made vector3 for fun because it isn't much different
 # plus, what if we wanted to move turtle into the 3rd dimension?
-class Vector3(Vector, namedtuple("CoordXYZ", ("x", "y", "z"))):
+class Vector3(Vector, namedtuple("CoordXYZ", ("x", "y", "z"), defaults=[0, 0, 0])):
     """a vector with x y and z coordinates"""
 
     def cross(self, operand):
         """gets cross product of two vectors"""
         if not isinstance(operand, self.__class__):
-            raise ArithmeticError(f"Cannot get cross product with {type(operand)}.")
+            raise TypeError(f"Cannot get cross product with {type(operand)}.")
 
+        # pylint: disable=C0103
         components = []
-        c_0 = 1
         for i in range(3):
-            c_1 = (i + 2) % 3
-            components.append(self[c_0] * operand[c_1] - self[c_1] * operand[c_0])
-            c_0 = c_1
+            c0 = (i + 1) % 3
+            c1 = (i + 2) % 3
+            components.append(self[c0] * operand[c1] - self[c1] * operand[c0])
 
         return self.__class__(*components)
