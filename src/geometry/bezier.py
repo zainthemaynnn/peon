@@ -2,10 +2,9 @@
 tools for creating bezier curves
 """
 
-# pylint: disable=C0103
-
 from bisect import bisect_left
 from math import comb
+from .coordinate import lerp
 
 
 class Bezier:
@@ -25,10 +24,6 @@ class Bezier:
     def map_eq(self, n_points):
         """returns bezier coordinates, spaced equally"""
         # see: https://gamedev.stackexchange.com/a/5427
-
-        def lerp(p0, p1, delta):
-            """lerps between two coordinates"""
-            return p0 + (p1 - p0) * delta
 
         coords = [self.root_points[0]]  # final coords
         arc_lengths = [0]  # arc length at a specific coord (separated for bisect)
@@ -55,9 +50,7 @@ class Bezier:
             coord, distance = unshifted[i]
             prev_coord = unshifted[i - 1][0]
 
-            coords.append(
-                round(lerp(coord, prev_coord, (nearest - target) / distance))
-            )
+            coords.append(round(lerp(coord, prev_coord, (nearest - target) / distance)))
 
         return coords
 
@@ -65,6 +58,7 @@ class Bezier:
         """returns a single coordinate (unspaced) along the curve from delta 0-1"""
         # a bezier of order N is just (t + (t - 1)) ^ N
         # with each product multiplied by the respective point
+        # pylint: disable=C0103
         s = 1 - t
         product = self.root_points[0].__class__()  # initialize empty vector
         for i, coord in enumerate(self.root_points):
