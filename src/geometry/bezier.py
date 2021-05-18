@@ -56,7 +56,7 @@ class Bezier:
             prev_coord = unshifted[i - 1][0]
 
             coords.append(
-                round(lerp(coord, prev_coord, (target - nearest) / distance))
+                round(lerp(coord, prev_coord, (nearest - target) / distance))
             )
 
         return coords
@@ -65,7 +65,7 @@ class Bezier:
         """returns a single coordinate (unspaced) along the curve from delta 0-1"""
         # a bezier of order N is just (t + (t - 1)) ^ N
         # with each product multiplied by the respective point
-        s = t - 1
+        s = 1 - t
         product = self.root_points[0].__class__()  # initialize empty vector
         for i, coord in enumerate(self.root_points):
             product += coord * (comb(self.order, i) * t ** i * s ** (self.order - i))
