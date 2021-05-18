@@ -11,6 +11,12 @@ from collections import namedtuple
 from functools import reduce
 
 
+def lerp(p0, p1, delta):
+    """lerps between two numbers or coordinates"""
+    # pylint: disable=C0103
+    return p0 + (p1 - p0) * delta
+
+
 # do not instantiate directly. use with an iterable class and it slaps some vector stuff on.
 class Vector:
     """superclass for creating vectors with an arbitrary number of coordinates"""
@@ -47,6 +53,9 @@ class Vector:
     def __rmul__(self, operand):
         return self.__mul__(operand)
 
+    def __neg__(self):
+        return self.__mul__(-1)
+
     def __truediv__(self, operand):
         return self._apply(operand, operator.truediv, "Cannot divide {} by {}.", True)
 
@@ -62,9 +71,11 @@ class Vector:
         )
 
     def __getattr__(self, key):
-        if key == "magnitude":  # this is separate because calculating it is expensive
+        # this is separate because calculating it is expensive
+        if key == "magnitude":
             setattr(self, "magnitude", math.hypot(*self))
             return self.magnitude
+
         raise AttributeError
 
     def dot(self, operand):
@@ -78,26 +89,47 @@ class Vector:
 
 
 # I am using namedtuples as iterables
-class Vector2(Vector, namedtuple("CoordXY", ("x", "y"), defaults=[0, 0])):
+class Vector2(Vector, namedtuple("CoordXY", ("x", "y"), defaults=(0, 0))):
     """a vector with x and y coordinates"""
+
+    def __getattr__(self, key):
+        try:
+            return super().__getattr__(key)
+        except AttributeError:
+            pass
+
+        # another expensive calculation
+        if key == "angle":
+            # circle starts at Vector2(1, 0)
+            setattr(self, "angle", self.angle_between(self.__class__(1, 0)))
+            return self.angle
+
+        raise AttributeError
 
     def rotate(self, n_deg):
         """returns vector rotated N degrees counterclockwise"""
+        # didn't know how to do this, used the link below
         # https://matthew-brett.github.io/teaching/rotation_2d.html
         # pylint: disable=C0103
         rx, ry = self.x * n_deg, self.y * n_deg
         return self.__class__(math.cos(rx) - math.sin(ry), math.sin(rx) + math.cos(ry))
 
+    def angle_between(self, operand):
+        """calculates angle between two vectors"""
+        return math.degrees(math.acos(self.dot(operand) / (abs(self) * abs(operand))))
+
 
 # I made vector3 for fun because it isn't much different
 # plus, what if we wanted to move turtle into the 3rd dimension?
-class Vector3(Vector, namedtuple("CoordXYZ", ("x", "y", "z"), defaults=[0, 0, 0])):
+class Vector3(Vector, namedtuple("CoordXYZ", ("x", "y", "z"), defaults=(0, 0, 0))):
     """a vector with x y and z coordinates"""
 
     def cross(self, operand):
-        """gets cross product of two vectors"""
+        """calculates cross product of two vectors"""
         if not isinstance(operand, self.__class__):
-            raise TypeError(f"Cannot get cross product with {type(operand)}.")
+            raise TypeError(
+                f"Cannot get cross product with {type(self)} and {type(operand)}."
+            )
 
         # pylint: disable=C0103
         components = []
