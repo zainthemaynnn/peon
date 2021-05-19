@@ -13,27 +13,37 @@ class Peon(Turtle):
         super().__init__()
         self.penup()
         self.width(5)
-        self.speed(10)
+        self.speed(0)
 
         self.canvas = self.getscreen()
         self.canvas.listen()
 
-    def tp(self, destination, rotation, steps=20, speed=None):  # pylint: disable=C0103
+    # pylint: disable=C0103
+    def tp(self, destination, rotation=0, speed=None):
         """releases pen, smoothly moves and rotates to position simultaneously"""
+        was_down = self.isdown()
         self.pu()
         cur_speed = self.speed()
         if speed:
             self.speed(speed)
 
         base_pos, base_rot = self.pos(), self.heading()
-        print(base_rot, rotation)
-        if base_rot - rotation < -180:
-            rotation = rotation - 360
+
+        # approximately 1 step per 10 px
+        steps = round((destination - base_pos).magnitude / 10)
+
+        # find shortest rotation (leftwards or rightwards)
+        if rotation > base_rot:
+            if (diff := rotation - base_rot) > 180:
+                diff -= 360
+        else:
+            if (diff := rotation - base_rot) < -180:
+                diff += 360
 
         path = [
             (
                 lerp(base_pos, destination, (delta := t / steps)),
-                lerp(base_rot, rotation, delta),
+                base_rot + diff * delta,
             )
             for t in range(1, steps + 1)
         ]
@@ -44,7 +54,8 @@ class Peon(Turtle):
             self.seth(angle)
 
         self.speed(cur_speed)
-        self.pd()
+        if was_down:
+            self.pd()
 
     def follow_path(self, path, reverse=False):
         """follows an array of coordinates"""
