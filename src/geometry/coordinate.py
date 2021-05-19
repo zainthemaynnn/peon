@@ -76,7 +76,7 @@ class Vector:
             setattr(self, "magnitude", math.hypot(*self))
             return self.magnitude
 
-        raise AttributeError
+        raise AttributeError(key)
 
     def dot(self, operand):
         """calculates dot product of two vectors"""
@@ -104,7 +104,7 @@ class Vector2(Vector, namedtuple("CoordXY", ("x", "y"), defaults=(0, 0))):
             setattr(self, "angle", self.angle_between(self.__class__(1, 0)))
             return self.angle
 
-        raise AttributeError
+        raise AttributeError(key)
 
     def rotate(self, n_deg):
         """returns vector rotated N degrees counterclockwise"""
