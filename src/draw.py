@@ -341,7 +341,7 @@ async def animation_loop(hand0, hand1):
     c_toss = constants["toss"]
 
     emeralds = []
-    # create backwards so white stays on top like the original
+    # create backwards so blue stays on top like the original
     for i in range(6, 0, -1):
         emerald = Peon()
         emerald.ht()
