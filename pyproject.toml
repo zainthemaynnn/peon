@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shelled-peon"
-version = "0.1.0"
+version = "1.0.0"
 description = "Entry for CSC x Creators competition 2021."
 authors = ["zainthemaynnn <zainyusufazam@gmail.com>"]
 license = "MIT"
