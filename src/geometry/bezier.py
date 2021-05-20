@@ -56,7 +56,7 @@ class Bezier:
 
     def get_coord(self, t):
         """returns a single coordinate (unspaced) along the curve from delta 0-1"""
-        # a bezier of order N is just (t + (t - 1)) ^ N
+        # a bezier of order N is just (t + (1 - t)) ^ N
         # with each product multiplied by the respective point
         # pylint: disable=C0103
         s = 1 - t
