@@ -13,13 +13,12 @@ class Peon(Turtle):
         super().__init__()
         self.penup()
         self.width(5)
-        self.speed(0)
-
+        self.speed(10)
         self.canvas = self.getscreen()
         self.canvas.listen()
 
     # pylint: disable=C0103
-    def tp(self, destination, rotation=0, speed=None):
+    def tp(self, destination, rotation=0, speed=None, rate=20):
         """releases pen, smoothly moves and rotates to position simultaneously"""
         was_down = self.isdown()
         self.pu()
@@ -29,8 +28,8 @@ class Peon(Turtle):
 
         base_pos, base_rot = self.pos(), self.heading()
 
-        # approximately 1 step per 10 px
-        steps = round((destination - base_pos).magnitude / 10)
+        # approximately 1 step per rate px
+        steps = round((destination - base_pos).magnitude / rate)
 
         # find shortest rotation (leftwards or rightwards)
         if rotation > base_rot:
@@ -57,25 +56,23 @@ class Peon(Turtle):
         if was_down:
             self.pd()
 
-    def follow_path(self, path, reverse=False):
+    def follow_path(self, path):
         """follows an array of coordinates"""
-        if not reverse:
-            if self.pos() != path[0]:
-                self.tp(path[0], (path[1] - path[0]).angle)
+        if self.pos() != path[0]:
+            self.tp(path[0], (path[1] - path[0]).angle)
 
-            for coord in path[1:]:
-                self.seth(self.towards(*coord))
-                self.goto(coord)
+        if not self.filling():
+            self.begin_fill()
 
-        else:
-            if self.pos() != path[-1]:
-                self.tp(path[-1], (path[-2] - path[-1]).angle)
+        for coord in path[1:]:
+            self.seth(self.towards(*coord))
+            self.goto(coord)
 
-            for i in range(len(path) - 2, 0, -1):
-                coord = path[i]
-                self.seth(self.towards(*coord))
-                self.goto(coord)
-
-    def pos(self):
+    def position(self):
         """returns position vector"""
         return round(Vector2(*super().pos()))
+
+    pos = position
+
+    def get_poly(self):
+        return [round(Vector2(*coord)) for coord in super().get_poly()]
