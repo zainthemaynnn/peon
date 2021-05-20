@@ -36,7 +36,7 @@ class Bezier:
 
         for step in range(1, n_points):
             coord = self.get_coord(step / (n_points - 1))
-            distance = abs(coord - prev_coord)
+            distance = (coord - prev_coord).magnitude
             arc_total += distance
             unshifted.append((coord, distance))
             arc_lengths.append(arc_total)

@@ -63,7 +63,7 @@ class Vector:
         return self._apply(operand, operator.floordiv, "Cannot divide {} by {}.", True)
 
     def __abs__(self):
-        return self.magnitude
+        return self.unit
 
     def __round__(self, precision=0):
         return self._apply(
@@ -75,6 +75,10 @@ class Vector:
         if key == "magnitude":
             setattr(self, "magnitude", math.hypot(*self))
             return self.magnitude
+
+        if key == "unit":
+            setattr(self, "unit", self / self.magnitude)
+            return self.unit
 
         raise AttributeError(key)
 
@@ -106,17 +110,11 @@ class Vector2(Vector, namedtuple("CoordXY", ("x", "y"), defaults=(0, 0))):
 
         raise AttributeError(key)
 
-    def rotate(self, n_deg):
-        """returns vector rotated N degrees counterclockwise"""
-        # didn't know how to do this, used the link below
-        # https://matthew-brett.github.io/teaching/rotation_2d.html
-        # pylint: disable=C0103
-        rx, ry = self.x * n_deg, self.y * n_deg
-        return self.__class__(math.cos(rx) - math.sin(ry), math.sin(rx) + math.cos(ry))
-
     def angle_between(self, operand):
         """calculates angle between two vectors"""
-        return math.degrees(math.acos(self.dot(operand) / (abs(self) * abs(operand))))
+        return math.degrees(
+            math.acos(self.dot(operand) / (self.magnitude * operand).magnitude)
+        )
 
 
 # I made vector3 for fun because it isn't much different
